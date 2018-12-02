@@ -31,21 +31,22 @@ if __name__ == '__main__':
             sys.exit(0)
         print('[STEP {}]'.format(step))
         # coin toss to generate a new car or not
-        if north2south.car_in < 50 and random.uniform(0, 1) >= 0.5: 
+        if random.uniform(0, 1) >= 0.5: 
             print('new vehicle in lane {}'.format(north2south.name))
             north2south.append(Vehicle())
-        if west2east.car_in < 50 and random.uniform(0,1) >= 0.5:
+        if random.uniform(0,1) >= 0.5:
             print('new vehicle in lane {}'.format(west2east.name))
             west2east.append(Vehicle())
+
+        control.step()
+        north2south.step()
+        west2east.step()
 
         print("N2S")
         print(north2south)
         print("W2E")
         print(west2east)
-
-        control.step()
-        north2south.step()
-        west2east.step()
+        
         step+=1
         print('\n')
     

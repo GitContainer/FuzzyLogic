@@ -61,9 +61,10 @@ class Lane(object):
             pos_last_v = self.v[-1].position
             if pos_last_v == len(self.lane)-1:
                 # maximum capacity
+                print('[{}] maximum capacity !'.format(self.name))
                 return 
             elif pos_last_v >= self.D+1: 
-                v.position = pos_last_v
+                v.position = pos_last_v+1
                 self.lane[v.position] = v
                 self.v.append(v) 
             else:
@@ -78,17 +79,20 @@ class Lane(object):
         """
         move forward logic. Handle sensor detection
         """
+        remove = False
         v.ride += 1
         v.position -= 1
         if v.position == 0:
             # out of sensored area
             self.car_out += 1 
             self.total_wait += v.wait 
+            remove = True#self.v.remove(v)
             self.__notify_controller(0)
         elif v.position == self.D:
             # in sensored area
             self.car_in += 1
             self.__notify_controller(self.D)
+        return remove
 
     def step(self):
         """
@@ -99,20 +103,25 @@ class Lane(object):
         if the vehicle is not in position 0, otherwise it waits.
         When a vehicle reaches position 0, it is removed from the lane.
         """
-        #green light, everyone moves forward
+        
         if self.light.state == State.green:
-            print("[{}]green light, everyone moves forward".format(self.name))
-            # update metrics
-            for v in self.v:
-                self.__ride(v)
+            #green light, everyone moves forward
+            print("[{}] green light, everyone moves forward".format(self.name))
+            
+            # update structure
+            remove = [False for i in range(len(self.v))]
+            for i in range(len(self.v)):
+                remove[i] = self.__ride(self.v[i])
+            if len(remove) > 0 and remove[0]:
+                self.v.pop(0)
             # shift list 1 index to the left
-            self.lane[0] = None 
+            self.lane[1] = None 
             self.lane.rotate(-1)
-            if len(self.v) > 0:
-                self.v.pop(0) 
-        # amber or red light
+            
+        
         else:
-            print("[{}]amber or red light".format(self.name))
+            # amber or red light
+            print("[{}] amber or red light".format(self.name))
             for v in self.v:
                 # first car has to stop
                 if v.position == 1:
@@ -122,9 +131,11 @@ class Lane(object):
                     if self.lane[v.position-1] is None:
                         # no car ahead, this car can ride forward
                         self.__ride(v)
+                        self.lane[v.position], self.lane[v.position+1] = self.lane[v.position+1], self.lane[v.position]
                     else:
                         # car ahead, this car has to wait
                         v.wait += 1
+                    
     
     def __repr__(self):
         s= []
