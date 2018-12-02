@@ -26,7 +26,7 @@ queue["L"] = fuzz.trimf(queue.universe, [4, 6, 6])
 
 # the extension membership function
 # assign the bounds of the extension membership function
-extension = ctrl.Antecedent(np.arange(0, 7, 1), 'extension')
+extension = ctrl.Consequent(np.arange(0, 7, 1), 'extension')
 
 # assign the bounds of each fuzzy member
 extension["Z"] = fuzz.trimf(extension.universe, [0, 0, 2])
