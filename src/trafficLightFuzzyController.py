@@ -38,6 +38,7 @@ arrivals.view()
 queue.view()
 extension.view()
 
+# implement all the rules available
 rule1 = ctrl.Rule(arrivals["AN"] & queue["VS"], extension["Z"])
 rule2 = ctrl.Rule(arrivals["AN"] & queue["S"], extension["Z"])
 rule3 = ctrl.Rule(arrivals["AN"] & queue["M"], extension["Z"])
@@ -54,3 +55,15 @@ rule13 = ctrl.Rule(arrivals["TMY"] & queue["VS"], extension["LO"])
 rule14 = ctrl.Rule(arrivals["TMY"] & queue["S"], extension["ML"])
 rule15 = ctrl.Rule(arrivals["TMY"] & queue["M"], extension["ML"])
 rule16 = ctrl.Rule(arrivals["TMY"] & queue["L"], extension["SO"])
+
+# implement the control system that does the fuzzification, composition inference and defuzzification for us
+traffic_lights_ctrl = ctrl.ControlSystem(rules=
+    [rule1, rule2, rule3, rule4, rule5, rule6, rule7, rule8, rule9, rule10, rule11, rule12, rule13, rule14, rule15,
+     rule16])
+
+traffic_lights_simulation = ctrl.ControlSystemSimulation(traffic_lights_ctrl)
+
+traffic_lights_simulation.input["Arrivals"] = 4
+traffic_lights_simulation.input["Queue"] = 3
+
+print(traffic_lights_simulation.output)
