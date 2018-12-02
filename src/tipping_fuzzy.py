@@ -34,3 +34,6 @@ tipping = ctrl.ControlSystemSimulation(tipping_ctrl)
 tipping.input['quality'] = 6.5
 tipping.input['service'] = 9.8
 # Crunch the numbers
+tipping.compute()
+print(tipping.output)
+tip.view(sim=tipping)

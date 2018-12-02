@@ -6,7 +6,7 @@ from skfuzzy import control as ctrl
 
 # The arrival membership function
 # assign the bounds of the membership function
-arrivals = ctrl.Antecedent(np.arange(0, 7, 1), 'Arrivals')
+arrivals = ctrl.Antecedent(np.arange(0, 7, 1), 'arrivals')
 
 # assign the bounds of every fuzzy member
 arrivals["AN"] = fuzz.trimf(arrivals.universe, [0, 0, 2])
@@ -16,7 +16,7 @@ arrivals["TMY"] = fuzz.trimf(arrivals.universe, [4, 6, 6])
 
 # the queue membership function
 # assign the bounds of the queue membership function
-queue = ctrl.Antecedent(np.arange(0, 7, 1), 'Queue')
+queue = ctrl.Antecedent(np.arange(0, 7, 1), 'queue')
 
 # assign the the bounds of each fuzzy member
 queue["VS"] = fuzz.trimf(queue.universe, [0, 0, 2])
@@ -26,7 +26,7 @@ queue["L"] = fuzz.trimf(queue.universe, [4, 6, 6])
 
 # the extension membership function
 # assign the bounds of the extension membership function
-extension = ctrl.Antecedent(np.arange(0, 7, 1), "Extension")
+extension = ctrl.Antecedent(np.arange(0, 7, 1), 'extension')
 
 # assign the bounds of each fuzzy member
 extension["Z"] = fuzz.trimf(extension.universe, [0, 0, 2])
@@ -34,9 +34,6 @@ extension["SO"] = fuzz.trimf(extension.universe, [0, 2, 4])
 extension["ML"] = fuzz.trimf(extension.universe, [2, 4, 6])
 extension["LO"] = fuzz.trimf(extension.universe, [4, 6, 6])
 
-arrivals.view()
-queue.view()
-extension.view()
 
 # implement all the rules available
 rule1 = ctrl.Rule(arrivals["AN"] & queue["VS"], extension["Z"])
@@ -56,6 +53,7 @@ rule14 = ctrl.Rule(arrivals["TMY"] & queue["S"], extension["ML"])
 rule15 = ctrl.Rule(arrivals["TMY"] & queue["M"], extension["ML"])
 rule16 = ctrl.Rule(arrivals["TMY"] & queue["L"], extension["SO"])
 
+
 # implement the control system that does the fuzzification, composition inference and defuzzification for us
 traffic_lights_ctrl = ctrl.ControlSystem(rules=
     [rule1, rule2, rule3, rule4, rule5, rule6, rule7, rule8, rule9, rule10, rule11, rule12, rule13, rule14, rule15,
@@ -63,7 +61,7 @@ traffic_lights_ctrl = ctrl.ControlSystem(rules=
 
 traffic_lights_simulation = ctrl.ControlSystemSimulation(traffic_lights_ctrl)
 
-traffic_lights_simulation.input["Arrivals"] = 4
-traffic_lights_simulation.input["Queue"] = 3
-
+traffic_lights_simulation.input['arrivals'] = 4.4
+traffic_lights_simulation.input['queue'] = 3.2
+traffic_lights_simulation.compute()
 print(traffic_lights_simulation.output)
