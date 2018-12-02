@@ -1,0 +1,56 @@
+import numpy as np
+import skfuzzy as fuzz
+from skfuzzy import control as ctrl
+
+# first we need to design the membership functions
+
+# The arrival membership function
+# assign the bounds of the membership function
+arrivals = ctrl.Antecedent(np.arange(0, 7, 1), 'Arrivals')
+
+# assign the bounds of every fuzzy member
+arrivals["AN"] = fuzz.trimf(arrivals.universe, [0, 0, 2])
+arrivals["F"] = fuzz.trimf(arrivals.universe, [0, 2, 4])
+arrivals["MY"] = fuzz.trimf(arrivals.universe, [2, 4, 6])
+arrivals["TMY"] = fuzz.trimf(arrivals.universe, [4, 6, 6])
+
+# the queue membership function
+# assign the bounds of the queue membership function
+queue = ctrl.Antecedent(np.arange(0, 7, 1), 'Queue')
+
+# assign the the bounds of each fuzzy member
+queue["VS"] = fuzz.trimf(queue.universe, [0, 0, 2])
+queue["S"] = fuzz.trimf(queue.universe, [0, 2, 4])
+queue["M"] = fuzz.trimf(queue.universe, [2, 4, 6])
+queue["L"] = fuzz.trimf(queue.universe, [4, 6, 6])
+
+# the extension membership function
+# assign the bounds of the extension membership function
+extension = ctrl.Antecedent(np.arange(0, 7, 1), "Extension")
+
+# assign the bounds of each fuzzy member
+extension["Z"] = fuzz.trimf(extension.universe, [0, 0, 2])
+extension["SO"] = fuzz.trimf(extension.universe, [0, 2, 4])
+extension["ML"] = fuzz.trimf(extension.universe, [2, 4, 6])
+extension["LO"] = fuzz.trimf(extension.universe, [4, 6, 6])
+
+arrivals.view()
+queue.view()
+extension.view()
+
+rule1 = ctrl.Rule(arrivals["AN"] & queue["VS"], extension["Z"])
+rule2 = ctrl.Rule(arrivals["AN"] & queue["S"], extension["Z"])
+rule3 = ctrl.Rule(arrivals["AN"] & queue["M"], extension["Z"])
+rule4 = ctrl.Rule(arrivals["AN"] & queue["L"], extension["Z"])
+rule5 = ctrl.Rule(arrivals["F"] & queue["VS"], extension["SO"])
+rule6 = ctrl.Rule(arrivals["F"] & queue["S"], extension["SO"])
+rule7 = ctrl.Rule(arrivals["F"] & queue["M"], extension["Z"])
+rule8 = ctrl.Rule(arrivals["F"] & queue["L"], extension["Z"])
+rule9 = ctrl.Rule(arrivals["MY"] & queue["VS"], extension["ML"])
+rule10 = ctrl.Rule(arrivals["MY"] & queue["S"], extension["ML"])
+rule11 = ctrl.Rule(arrivals["MY"] & queue["M"], extension["SO"])
+rule12 = ctrl.Rule(arrivals["MY"] & queue["L"], extension["Z"])
+rule13 = ctrl.Rule(arrivals["TMY"] & queue["VS"], extension["LO"])
+rule14 = ctrl.Rule(arrivals["TMY"] & queue["S"], extension["ML"])
+rule15 = ctrl.Rule(arrivals["TMY"] & queue["M"], extension["ML"])
+rule16 = ctrl.Rule(arrivals["TMY"] & queue["L"], extension["SO"])
