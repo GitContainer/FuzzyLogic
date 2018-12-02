@@ -64,4 +64,5 @@ traffic_lights_simulation = ctrl.ControlSystemSimulation(traffic_lights_ctrl)
 traffic_lights_simulation.input['arrivals'] = 4.4
 traffic_lights_simulation.input['queue'] = 3.2
 traffic_lights_simulation.compute()
-print(traffic_lights_simulation.output)
+print(traffic_lights_simulation.output['extension'])
+extension.view(sim=traffic_lights_simulation)
