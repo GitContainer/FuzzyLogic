@@ -14,6 +14,10 @@ class FuzzyLogicController(Controller):
                 'in':0,
                 'out':0
             },
+            State.amber: { # this is treated as a buffer
+                'in':0,
+                'out':0
+            },
             State.red: {
                 'in': 0,
                 'out':0
@@ -60,7 +64,10 @@ class FuzzyLogicController(Controller):
         arrival = self.get_queue()
         self.metrics[State.green]['in'] = arrival
         self.metrics[State.green]['out'] = 0 #metrics[red][out]
-        self.metrics[State.red]['in'] = self.buffer
+        self.metrics[State.red]['in'] = self.buffer + self.metrics[State.amber]['in']
+        #reset the buffers
+        self.buffer = 0
+        self.metrics[State.amber]['in'] = 0
 
     def add_traffic_light(self, tlight, lane_id):
         super().add_traffic_light(tlight, lane_id)
@@ -90,17 +97,14 @@ class FuzzyLogicController(Controller):
             and the Queue variables
         """
         super().update(lane_id, position)
+        
+        state = self.lights[lane_id].state
         # update metrics 
-        if self.lights[lane_id].state == State.green:
-            # update from current green light sensor
-            if position > 0: # test if sensor D or sensor 0
-                self.metrics[State.green]['in'] += 1
-            else:
-                self.metrics[State.green]['out'] += 1
+        if position == 0:
+            assert state == State.green, "car crossing while amber/red light"
+            self.metrics[state]['out'] += 1
         else:
-            assert position > 0, "car crossing while amber/red light"
-            self.metrics[State.red]['in'] += 1
-
+            self.metrics[state]['in'] += 1
         print('[FLC] arrival: {} queue: {}'.format(self.get_arrival(), self.get_queue()))
         # compute the extend period based on arrival and queue metrics
 
