@@ -19,36 +19,8 @@ class FuzzyLogicController(Controller):
                 'out':0
             }
         }
-
-
-    def reset(self):
-        """
-        Reset the metrics used for arrival and queue count, and refresh the mapState.
-        """
-        for lane_id, light in self.lights.items():
-            self.mapState[light.state] = lane_id
-
-    def switch_green(self):
-        """
-        Update metrics when the green light is switching to amber by 
-        converting remaining vehicles in current green lane to queue
-        """
-        queue = self.metrics[State.green]['in'] - self.metrics[State.green]['out']
-        self.metrics[State.red]['in'] = queue
-
-    def switch_red(self):
-        """
-        Update metrics when the red light is switching green by 
-        converting waiting vehicles in current red lane to arrival
-        """
-        arrival = self.metrics[State.red]['in']
-        self.metrics[State.green]['in'] = arrival
-        self.metrics[State.green]['out'] = 0 #metrics[red][out]
-
-    def add_traffic_light(self, tlight, lane_id):
-        super().add_traffic_light(tlight, lane_id)
-        # keep track of which lane is in which state
-        self.mapState[tlight.state] = lane_id
+        #buffer for the state switch
+        self.buffer = 0 
 
     def get_arrival(self):
         """
@@ -62,20 +34,54 @@ class FuzzyLogicController(Controller):
         """
         return self.metrics[State.red]['in']
 
+    def refresh(self):
+        """
+        Refresh the mapState.
+        """
+        for colour in [State.green, State.amber, State.red]:
+            self.mapState[colour] = None
+        for lane_id, light in self.lights.items():
+            self.mapState[light.state] = lane_id
+
+    def switch_green(self):
+        """
+        Update metrics when the green light is switching to amber by 
+        converting remaining vehicles in current green lane to queue
+        """
+        queue = self.get_arrival()
+        self.buffer = queue
+        #self.metrics[State.red]['in'] = queue
+
+    def switch_red(self):
+        """
+        Update metrics when the red light is switching green by 
+        converting waiting vehicles in current red lane to arrival
+        """
+        arrival = self.get_queue()
+        self.metrics[State.green]['in'] = arrival
+        self.metrics[State.green]['out'] = 0 #metrics[red][out]
+        self.metrics[State.red]['in'] = self.buffer
+
+    def add_traffic_light(self, tlight, lane_id):
+        super().add_traffic_light(tlight, lane_id)
+        # keep track of which lane is in which state
+        self.mapState[tlight.state] = lane_id
+
     def step(self):
         super().step()
         # if there has been a switch, reset metrics properly
         greenLane = self.mapState[State.green]
         redLane = self.mapState[State.red]
-        if self.lights[greenLane].state is not State.green:
+        if greenLane is not None and self.lights[greenLane].state != State.green:
             # green light turned amber
+            print('[FLC] green -> amber')
             self.switch_green()
-        elif self.lights[redLane].state is not State.red:
+        elif self.lights[redLane].state != State.red:
             # red light turned green
             # (no need to handle amber light turning red)
+            print('[FLC] red -> green')
             self.switch_red()
-        print('[FLC] reset Queue and Arrival')
-        self.reset()
+        self.refresh()
 
     def update(self, lane_id, position):
         """
