@@ -29,14 +29,14 @@ class Lane(object):
     def __init__(self, controller: Controller,S=50, name='lane', D=15,init_state=State.green):
         self.lane = deque([None for i in range(S)], S)
         self.v = [] # contains the actual vehicles
-        self.id = id(self)
         self.name = name
+        self.id = hash(self.name) 
         self.controller = controller
         self.D = D
         # traffic light
         self.light = TrafficLight(init_state=init_state)
         # register the light to the controller
-        self.controller.lights.append(self.light)
+        self.controller.add_traffic_light(self.light, self.id)
         ## metrics 
         # number of cars entering the sensed area
         self.car_in = 0

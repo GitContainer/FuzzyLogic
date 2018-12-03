@@ -66,27 +66,27 @@ class Controller(object):
     """
 
     def __init__(self):
-        # list of lights in the system
-        self.lights = []
+        # map of (lane_id -> light) in the system
+        self.lights = {}
     
-    def add_traffic_light(self, tlight: TrafficLight):
+    def add_traffic_light(self, tlight: TrafficLight, lane_id):
         """
         Register the given traffic light to this controller.  
         """
         # ensure that the added light does not have the same colour
         if len(self.lights) > 0:
             hasGreen = False
-            for l in self.lights:
-                hasGreen = l.state = State.green
-            if hasGreen:
-                tlight.state = tlight.__next_state()
-        self.lights.append(tlight)
+            for i, l in self.lights.items():
+                hasGreen = l.state == State.green or hasGreen
+            if hasGreen and tlight.state == State.green:
+                tlight.state = State.red
+        self.lights[lane_id] = tlight
 
     def step(self):
         """
         This function has to be called at each timestep to simulate time. 
         """
-        for light in self.lights:
+        for lane_id, light in self.lights.items():
             light.step()
 
     def update(self, id, position):
