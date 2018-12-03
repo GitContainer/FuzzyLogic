@@ -72,4 +72,7 @@ class traficLightFuzzyController():
 
 
 fuzzy_controller = traficLightFuzzyController()
-print(fuzzy_controller.get_extension(3,2))
+for i in range(0,7):
+    for j in range(0,7):
+        print("for queue equal to {0} cars and {1} cars arriving at the traffic light".format(i,j))
+        print("the controller will extend green with {0} seconds".format(fuzzy_controller.get_extension(i,j)))
