@@ -2,9 +2,10 @@
 Contains the base classes for the simulation.
 """
 import numpy as np
-from enum import IntEnum 
+from enum import IntEnum
 from abc import ABCMeta, abstractmethod
 from trafficLightFuzzyController import traficLightFuzzyController as TLFC
+
 
 class State(IntEnum):
     """
@@ -13,6 +14,7 @@ class State(IntEnum):
     green = 1
     amber = 2
     red = 3
+
 
 class TrafficLight(object):
     """
@@ -24,6 +26,7 @@ class TrafficLight(object):
         red_t   (int): red time
         init_state (State): initial state of the traffic light
     """
+
     def __init__(self, green_t=11, amber_t=4, red_t=15, init_state=State.green):
         self.green_t = green_t
         self.amber_t = amber_t
@@ -39,9 +42,9 @@ class TrafficLight(object):
             State.amber: amber_t,
             State.red: red_t
         }
-    
+
     def __next_state(self) -> State:
-        n = (((self.state-1)+1) % 3 ) + 1
+        n = (((self.state - 1) + 1) % 3) + 1
         return State(n)
 
     def step(self):
@@ -49,14 +52,15 @@ class TrafficLight(object):
         At each call, the current clock time counter is decreased until it reaches 0, at 
         which point the light switches to its next state (and counter is reset). 
         """
-        self.clocks[self.state]-= 1
-        print('({}) clock: {}'.format(self.state,  self.clocks[self.state]))
+        self.clocks[self.state] -= 1
+        # print('({}) clock: {}'.format(self.state,  self.clocks[self.state]))
         if self.clocks[self.state] == 0:
-            #reset 
+            # reset
             self.clocks[self.state] = self.__clock_reset[self.state]
             # next state 
             self.state = self.__next_state()
-            print('switch to: {}'.format(self.state))
+            # print('switch to: {}'.format(self.state))
+
 
 class Controller(object):
     """
@@ -70,7 +74,7 @@ class Controller(object):
     def __init__(self):
         # map of (lane_id -> light) in the system
         self.lights = {}
-    
+
     def add_traffic_light(self, tlight: TrafficLight, lane_id):
         """
         Register the given traffic light to this controller.  
@@ -96,8 +100,8 @@ class Controller(object):
         A call to this function notifies the controller of a vehicle detected 
         by the sensor.  
         """
-        print("car detected on lane {}, position {}".format(id, position))
-        
+        # print("car detected on lane {}, position {}".format(id, position))
+
 
 class FuzzyLogicController(Controller):
     def __init__(self):
@@ -107,20 +111,20 @@ class FuzzyLogicController(Controller):
         # car_in, car_out metrics used to compute Arrival and Queue 
         self.metrics = {
             State.green: {
-                'in':0,
-                'out':0
+                'in': 0,
+                'out': 0
             },
-            State.amber: { # this is treated as a buffer
-                'in':0,
-                'out':0
+            State.amber: {  # this is treated as a buffer
+                'in': 0,
+                'out': 0
             },
             State.red: {
                 'in': 0,
-                'out':0
+                'out': 0
             }
         }
-        #buffer for the state switch
-        self.buffer = 0 
+        # buffer for the state switch
+        self.buffer = 0
         # control variable to avoid lane starvation 
         self.extended_to_max = False
 
@@ -129,7 +133,7 @@ class FuzzyLogicController(Controller):
         Returns the Arrival value.
         """
         return self.metrics[State.green]['in'] - self.metrics[State.green]['out']
-    
+
     def get_queue(self):
         """
         Returns the Queue value.
@@ -152,7 +156,7 @@ class FuzzyLogicController(Controller):
         """
         queue = self.get_arrival()
         self.buffer = queue
-        #self.metrics[State.red]['in'] = queue
+        # self.metrics[State.red]['in'] = queue
 
     def switch_red(self):
         """
@@ -161,9 +165,9 @@ class FuzzyLogicController(Controller):
         """
         arrival = self.get_queue()
         self.metrics[State.green]['in'] = arrival
-        self.metrics[State.green]['out'] = 0 #metrics[red][out]
+        self.metrics[State.green]['out'] = 0  # metrics[red][out]
         self.metrics[State.red]['in'] = self.buffer + self.metrics[State.amber]['in']
-        #reset the buffers
+        # reset the buffers
         self.buffer = 0
         self.metrics[State.amber]['in'] = 0
 
@@ -179,7 +183,7 @@ class FuzzyLogicController(Controller):
             and the Queue variables
         """
         super().update(lane_id, position)
-        
+
         state = self.lights[lane_id].state
         # update metrics 
         if position == 0:
@@ -187,9 +191,9 @@ class FuzzyLogicController(Controller):
             self.metrics[state]['out'] += 1
         else:
             self.metrics[state]['in'] += 1
-        print('[FLC] arrival: {} queue: {}'.format(self.get_arrival(), self.get_queue()))
+        # print('[FLC] arrival: {} queue: {}'.format(self.get_arrival(), self.get_queue()))
         # compute the extend period based on arrival and queue metrics
-    
+
     def extend(self):
         """
         Extend the time of the green light (and the red light) according to the value retured by the Fuzzy Control System.
@@ -197,22 +201,22 @@ class FuzzyLogicController(Controller):
         # id of the lane with green and red light on
         greenL = self.mapState[State.green]
         redL = self.mapState[State.red]
-        assert greenL is not None , 'no green light'
+        assert greenL is not None, 'no green light'
         fuzzy = TLFC()
 
         if not self.extended_to_max:
             extension = np.rint(fuzzy.get_extension(self.get_queue(), self.get_arrival()))
-            green_clock = self.lights[greenL].clocks[State.green]  
-            green_clock = min(20, green_clock+extension)
+            green_clock = self.lights[greenL].clocks[State.green]
+            green_clock = min(20, green_clock + extension)
             self.extended_to_max = True if green_clock == 20 else False
 
             red_clock = self.lights[redL].clocks[State.red]
-            red_clock = min(20, red_clock+extension)
-            
-            print('[FLC] clock set at {}'.format(green_clock) )
+            red_clock = min(20, red_clock + extension)
+
+            # print('[FLC] clock set at {}'.format(green_clock) )
             self.lights[redL].clocks[State.red] = red_clock
             self.lights[greenL].clocks[State.green] = green_clock
-    
+
     def step(self):
         super().step()
         # if there has been a switch, reset metrics properly
@@ -222,12 +226,11 @@ class FuzzyLogicController(Controller):
             self.extend()
             if self.lights[greenLane].state != State.green:
                 # green light turned amber
-                print('[FLC] green -> amber')
+                # print('[FLC] green -> amber')
                 self.switch_green()
         elif self.lights[redLane].state != State.red:
             # red light turned green
             # (no need to handle amber light turning red)
-            print('[FLC] red -> green')
+            # print('[FLC] red -> green')
             self.switch_red()
         self.refresh()
-

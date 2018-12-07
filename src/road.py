@@ -61,7 +61,7 @@ class Lane(object):
             pos_last_v = self.v[-1].position
             if pos_last_v == len(self.lane)-1:
                 # maximum capacity
-                print('[{}] maximum capacity !'.format(self.name))
+                #print('[{}] maximum capacity !'.format(self.name))
                 return 
             elif pos_last_v >= self.D+1: 
                 v.position = pos_last_v+1
@@ -106,7 +106,7 @@ class Lane(object):
         
         if self.light.state == State.green:
             #green light, everyone moves forward
-            print("[{}] green light, everyone moves forward".format(self.name))
+            #print("[{}] green light, everyone moves forward".format(self.name))
             
             # update structure
             remove = [False for i in range(len(self.v))]
@@ -121,7 +121,7 @@ class Lane(object):
         
         else:
             # amber or red light
-            print("[{}] amber or red light".format(self.name))
+            #print("[{}] amber or red light".format(self.name))
             for v in self.v:
                 # first car has to stop
                 if v.position == 1:
