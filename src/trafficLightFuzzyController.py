@@ -9,23 +9,23 @@ class traficLightFuzzyController():
 
         # The arrival membership function
         # assign the bounds of the membership function
-        arrivals = ctrl.Antecedent(np.arange(0, 7, 1), 'arrivals')
+        arrivals = ctrl.Antecedent(np.arange(0, 16, 1), 'arrivals')
 
         # assign the bounds of every fuzzy member
         arrivals["AN"] = fuzz.trimf(arrivals.universe, [0, 0, 2])
-        arrivals["F"] = fuzz.trimf(arrivals.universe, [0, 2, 4])
-        arrivals["MY"] = fuzz.trimf(arrivals.universe, [2, 4, 6])
-        arrivals["TMY"] = fuzz.trimf(arrivals.universe, [4, 6, 6])
+        arrivals["F"] = fuzz.trimf(arrivals.universe, [1,4 , 7])
+        arrivals["MY"] = fuzz.trimf(arrivals.universe, [5, 9, 13])
+        arrivals["TMY"] = fuzz.trimf(arrivals.universe, [10, 15, 15])
 
         # the queue membership function
         # assign the bounds of the queue membership function
-        queue = ctrl.Antecedent(np.arange(0, 7, 1), 'queue')
+        queue = ctrl.Antecedent(np.arange(0, 16, 1), 'queue')
 
         # assign the the bounds of each fuzzy member
         queue["VS"] = fuzz.trimf(queue.universe, [0, 0, 2])
-        queue["S"] = fuzz.trimf(queue.universe, [0, 2, 4])
-        queue["M"] = fuzz.trimf(queue.universe, [2, 4, 6])
-        queue["L"] = fuzz.trimf(queue.universe, [4, 6, 6])
+        queue["S"] = fuzz.trimf(queue.universe, [1, 4, 7])
+        queue["M"] = fuzz.trimf(queue.universe, [5, 9, 13])
+        queue["L"] = fuzz.trimf(queue.universe, [10, 15, 15])
 
         # the extension membership function
         # assign the bounds of the extension membership function
@@ -36,6 +36,7 @@ class traficLightFuzzyController():
         extension["SO"] = fuzz.trimf(extension.universe, [0, 2, 4])
         extension["ML"] = fuzz.trimf(extension.universe, [2, 4, 6])
         extension["LO"] = fuzz.trimf(extension.universe, [4, 6, 6])
+        self.extension =  extension
 
         # implement all the rules available
         rule1 = ctrl.Rule(arrivals["AN"] & queue["VS"], extension["Z"])
@@ -61,13 +62,19 @@ class traficLightFuzzyController():
                                                   rule11,
                                                   rule12, rule13, rule14, rule15,
                                                   rule16])
+        if graphs:
+            extension.view()
+            arrivals.view()
+            queue.view()
+            traffic_lights_ctrl.view()
 
         self.traffic_lights_simulation = ctrl.ControlSystemSimulation(traffic_lights_ctrl)
 
     def get_extension(self, cars_in_queue, cars_arriving_at_green_light):
-        self.traffic_lights_simulation.input["arrivals"] = cars_arriving_at_green_light
-        self.traffic_lights_simulation.input["queue"] = cars_in_queue
+        self.traffic_lights_simulation.inputs({"arrivals":cars_arriving_at_green_light,"queue":cars_in_queue})
         self.traffic_lights_simulation.compute()
+        if graphs:
+            self.extension.view(sim=self.traffic_lights_simulation)
         return self.traffic_lights_simulation.output["extension"]
 
 
@@ -76,3 +83,6 @@ class traficLightFuzzyController():
 #    for j in range(0,7):
 #        print("for queue equal to {0} cars and {1} cars arriving at the traffic light".format(i,j))
 #        print("the controller will extend green with {0} seconds".format(fuzzy_controller.get_extension(i,j)))
+graphs = False
+# fuzzycontroller= traficLightFuzzyController()
+# fuzzycontroller.get_extension(6,12)
