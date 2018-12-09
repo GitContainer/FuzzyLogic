@@ -47,19 +47,21 @@ class TrafficLight(object):
         n = (((self.state - 1) + 1) % 3) + 1
         return State(n)
 
-    def step(self):
+    def step(self, log=False):
         """
         At each call, the current clock time counter is decreased until it reaches 0, at 
         which point the light switches to its next state (and counter is reset). 
         """
         self.clocks[self.state] -= 1
-        # print('({}) clock: {}'.format(self.state,  self.clocks[self.state]))
+        if log:
+            print('({}) clock: {}'.format(self.state,  self.clocks[self.state]))
         if self.clocks[self.state] == 0:
             # reset
             self.clocks[self.state] = self.__clock_reset[self.state]
             # next state 
             self.state = self.__next_state()
-            # print('switch to: {}'.format(self.state))
+            if log:
+                print('switch to: {}'.format(self.state))
 
 
 class Controller(object):
@@ -71,9 +73,10 @@ class Controller(object):
     of a specific traffic light. 
     """
 
-    def __init__(self):
+    def __init__(self, log=False):
         # map of (lane_id -> light) in the system
         self.lights = {}
+        self.log = log
 
     def add_traffic_light(self, tlight: TrafficLight, lane_id):
         """
@@ -93,7 +96,7 @@ class Controller(object):
         This function has to be called at each timestep to simulate time. 
         """
         for lane_id, light in self.lights.items():
-            light.step()
+            light.step(self.log)
 
     def update(self, id, position):
         """
@@ -104,8 +107,8 @@ class Controller(object):
 
 
 class FuzzyLogicController(Controller):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, log=False):
+        super().__init__(log=log)
         # map light_state -> lane_id to keep track of which lane is green or not
         self.mapState = {}
         # car_in, car_out metrics used to compute Arrival and Queue 
