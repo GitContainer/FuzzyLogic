@@ -127,6 +127,8 @@ class FuzzyLogicController(Controller):
         self.buffer = 0
         # control variable to avoid lane starvation 
         self.extended_to_max = False
+		# fuzzy logic 
+        self.fuzzy = TLFC()
 
     def get_arrival(self):
         """
@@ -202,10 +204,9 @@ class FuzzyLogicController(Controller):
         greenL = self.mapState[State.green]
         redL = self.mapState[State.red]
         assert greenL is not None, 'no green light'
-        fuzzy = TLFC()
 
         if not self.extended_to_max:
-            extension = np.rint(fuzzy.get_extension(self.get_queue(), self.get_arrival()))
+            extension = np.rint(self.fuzzy.get_extension(self.get_queue(), self.get_arrival()))
             green_clock = self.lights[greenL].clocks[State.green]
             green_clock = min(20, green_clock + extension)
             self.extended_to_max = True if green_clock == 20 else False
